@@ -318,7 +318,7 @@ export default function Projects() {
           viewport={{ once: true }}
         >
           <a
-            href="https://github.com/Muhib-2"
+            href="https://github.com"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm font-medium"

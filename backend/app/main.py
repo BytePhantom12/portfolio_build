@@ -15,7 +15,11 @@ app = FastAPI(
 # CORS middleware - allow frontend to make requests
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your frontend domain
+    allow_origins=[
+        "https://muwafak-portfolio.vercel.app",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ],  # In production, specify your frontend domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

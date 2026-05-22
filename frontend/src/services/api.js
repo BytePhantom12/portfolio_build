@@ -1,7 +1,7 @@
 // API Configuration
 // In production with Vercel Services, the backend is at /api
 // In development, it may be a separate server
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/';
 
 // Helper function to get auth token
 const getAuthToken = () => {

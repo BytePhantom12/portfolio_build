@@ -44,8 +44,8 @@ export default function ContactManager() {
   const fetchMessages = async () => {
     try {
       setMessagesLoading(true);
-      const response = await contactAPI.getMessages({ limit: 100 });
-      setMessages(response.data || []);
+      const messages = await contactAPI.getMessages();
+      setMessages(Array.isArray(messages) ? messages : []);
     } catch (error) {
       console.error('Error fetching messages:', error);
       alert('Failed to load messages');
@@ -115,9 +115,9 @@ export default function ContactManager() {
 
   const viewMessage = (message) => {
     setSelectedMessage(message);
-    setReplyText(message.replyMessage || '');
-    if (!message.read) {
-      toggleMessageRead(message._id, false);
+    setReplyText(message.reply || '');
+    if (!message.isRead) {
+      toggleMessageRead(message._id, message.isRead);
     }
   };
 
@@ -128,7 +128,7 @@ export default function ContactManager() {
       await contactAPI.addReply(selectedMessage._id, replyText);
       setMessages(messages.map(msg => 
         msg._id === selectedMessage._id 
-          ? { ...msg, replied: true, replyMessage: replyText } 
+          ? { ...msg, reply: replyText } 
           : msg
       ));
       alert('Reply saved successfully!');
@@ -140,7 +140,7 @@ export default function ContactManager() {
     }
   };
 
-  const unreadCount = messages.filter(msg => !msg.read).length;
+  const unreadCount = messages.filter(msg => !msg.isRead).length;
 
   if (loading) {
     return (
@@ -274,7 +274,7 @@ export default function ContactManager() {
               <div
                 key={msg._id}
                 className={`p-4 rounded-xl border transition-all ${
-                  msg.read
+                  msg.isRead
                     ? 'bg-white/[0.02] border-white/[0.05]'
                     : 'bg-[#00d4ff]/[0.05] border-[#00d4ff]/20'
                 }`}
@@ -283,7 +283,7 @@ export default function ContactManager() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-semibold text-slate-200">{msg.name}</h4>
-                      {msg.replied && (
+                      {msg.reply && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
                           Replied
                         </span>
@@ -304,14 +304,14 @@ export default function ContactManager() {
                       <HiEye className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => toggleMessageRead(msg._id, msg.read)}
+                      onClick={() => toggleMessageRead(msg._id, msg.isRead)}
                       className={`text-xs px-2 py-1 rounded-lg transition-colors ${
-                        msg.read
+                        msg.isRead
                           ? 'bg-white/[0.04] text-slate-400 hover:text-slate-200'
                           : 'bg-[#00d4ff]/20 text-[#00d4ff] hover:bg-[#00d4ff]/30'
                       }`}
                     >
-                      {msg.read ? 'Mark Unread' : 'Mark Read'}
+                      {msg.isRead ? 'Mark Unread' : 'Mark Read'}
                     </button>
                     <button
                       onClick={() => deleteMessage(msg._id)}
@@ -355,19 +355,19 @@ export default function ContactManager() {
               <p className="text-sm text-slate-300 whitespace-pre-wrap">{selectedMessage.message}</p>
             </div>
 
-            {selectedMessage.replied && selectedMessage.replyMessage && (
+            {selectedMessage.reply && (
               <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 mb-4">
                 <div className="flex items-center gap-2 mb-2">
                   <HiChatBubbleLeftRight className="w-4 h-4 text-emerald-400" />
                   <span className="text-sm font-semibold text-emerald-400">Your Reply</span>
                 </div>
-                <p className="text-sm text-slate-300 whitespace-pre-wrap">{selectedMessage.replyMessage}</p>
+                <p className="text-sm text-slate-300 whitespace-pre-wrap">{selectedMessage.reply}</p>
               </div>
             )}
 
             <div className="space-y-3">
               <label className="block text-sm font-medium text-slate-300">
-                {selectedMessage.replied ? 'Update Reply' : 'Add Reply'}
+                {selectedMessage.reply ? 'Update Reply' : 'Add Reply'}
               </label>
               <textarea
                 value={replyText}

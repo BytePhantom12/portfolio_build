@@ -16,6 +16,18 @@ from schemas import (
 router = APIRouter(prefix="/portfolio", tags=["Portfolio"])
 
 
+def parse_json_field(value, default=None):
+    """Parse JSON string from database, return default if None or invalid."""
+    if value is None:
+        return default
+    if isinstance(value, (list, dict)):
+        return value
+    try:
+        return json.loads(value) if isinstance(value, str) else value
+    except (json.JSONDecodeError, TypeError):
+        return default
+
+
 def get_first_user_id():
     """Get the first user ID (for single-user portfolio)."""
     user = execute_query("SELECT id FROM users LIMIT 1", fetch_one=True)
@@ -65,7 +77,7 @@ async def get_portfolio():
     )
     about = AboutResponse(
         description=about_row.get("description") if about_row else None,
-        highlights=about_row.get("highlights", []) if about_row else []
+        highlights=parse_json_field(about_row.get("highlights"), []) if about_row else []
     )
     
     # Fetch contact info
@@ -78,7 +90,7 @@ async def get_portfolio():
     contact = ContactInfoResponse(
         email=profile_row.get("email") if profile_row else None,
         phone=contact_row.get("phone") if contact_row else None,
-        social=contact_row.get("social_links", {}) if contact_row else {}
+        social=parse_json_field(contact_row.get("social_links"), {}) if contact_row else {}
     )
     
     # Fetch skills
@@ -88,7 +100,7 @@ async def get_portfolio():
         fetch_all=True
     ) or []
     skills = [
-        SkillResponse(_id=str(row["id"]), category=row["category"], items=row.get("items", []))
+        SkillResponse(_id=str(row["id"]), category=row["category"], items=parse_json_field(row.get("items"), []))
         for row in skills_rows
     ]
     
@@ -104,7 +116,7 @@ async def get_portfolio():
             title=row["title"],
             description=row.get("description"),
             image=row.get("image_url"),
-            technologies=row.get("technologies", []),
+            technologies=parse_json_field(row.get("technologies"), []),
             liveUrl=row.get("live_url"),
             githubUrl=row.get("github_url"),
             featured=row.get("featured", False)
@@ -144,7 +156,7 @@ async def get_portfolio():
             endDate=str(row["end_date"]) if row.get("end_date") else None,
             current=row.get("is_current", False),
             description=row.get("description"),
-            technologies=row.get("technologies", [])
+            technologies=parse_json_field(row.get("technologies"), [])
         )
         for row in experience_rows
     ]
